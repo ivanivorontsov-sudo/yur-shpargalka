@@ -15,7 +15,10 @@ data class LegalItem(
     val penalty: String,
     val sources: List<SourceRef> = emptyList(),
     val todo: String = "",
-    val doubt: String? = null
+    val doubt: String? = null,
+    val checked_at: String? = null,
+    val verification: String? = null,
+    val verification_notes: String? = null
 )
 
 @Serializable

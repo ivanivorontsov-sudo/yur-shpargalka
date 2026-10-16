@@ -348,6 +348,14 @@ fun DetailScreen(
         }
         Spacer(Modifier.height(10.dp))
         Text(item.title, fontWeight = FontWeight.Bold, fontSize = 22.sp, lineHeight = 28.sp)
+        if (!item.checked_at.isNullOrBlank()) {
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "Проверено по источнику: ${item.checked_at}" + (if (item.verification != null) " · ${item.verification}" else ""),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         Spacer(Modifier.height(14.dp))
         Block("Правило", item.rule)
         Block("Наказание / риск", item.penalty)
