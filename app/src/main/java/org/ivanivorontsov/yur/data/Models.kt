@@ -3,7 +3,7 @@ package org.ivanivorontsov.yur.data
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SourceRef(val name: String, val url: String)
+data class SourceRef(val name: String, val url: String, val checked: String? = null)
 
 @Serializable
 data class LegalItem(
@@ -30,6 +30,20 @@ data class SectionMeta(
 )
 
 @Serializable
+data class Contact(
+    val id: String,
+    val title: String,
+    val short: String = "",
+    val who: String = "",
+    val phone: String? = null,
+    val tel: String? = null,
+    val url: String = "",
+    val verified_on: String = "",
+    val checked: String = "",
+    val pinned: Boolean = false
+)
+
+@Serializable
 data class ChangelogEntry(val date: String, val text: String)
 
 @Serializable
@@ -40,5 +54,7 @@ data class LegalDoc(
     val sections: List<SectionMeta> = emptyList(),
     val severity_labels: Map<String, String> = emptyMap(),
     val items: List<LegalItem> = emptyList(),
-    val changelog: List<ChangelogEntry> = emptyList()
+    val changelog: List<ChangelogEntry> = emptyList(),
+    val contacts: List<Contact> = emptyList(),
+    val contacts_note: String = ""
 )

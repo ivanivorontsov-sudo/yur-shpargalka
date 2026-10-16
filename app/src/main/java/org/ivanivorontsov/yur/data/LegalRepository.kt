@@ -24,11 +24,12 @@ class LegalRepository(private val context: Context) {
     }
 
     fun loadCachedOrBundled(): LegalDoc {
+        val bundled = loadBundled()
         val cached = cacheFile.takeIf { it.exists() }?.readText(Charsets.UTF_8)
-        if (cached != null) {
-            runCatching { return json.decodeFromString<LegalDoc>(cached) }
-        }
-        return loadBundled()
+            ?.let { runCatching { json.decodeFromString<LegalDoc>(it) }.getOrNull() }
+            ?: return bundled
+        val newer = compareValuesBy(cached, bundled, { it.version }, { it.updated })
+        return if (newer >= 0) cached else bundled
     }
 
     fun loadBundled(): LegalDoc {
@@ -50,13 +51,15 @@ class LegalRepository(private val context: Context) {
                 if (conn.responseCode !in 200..299) error("HTTP ${conn.responseCode}")
                 val body = conn.inputStream.bufferedReader().readText()
                 val doc = json.decodeFromString<LegalDoc>(body)
-                val oldUpdated = runCatching { loadCachedOrBundled().updated }.getOrDefault("")
+                val old = runCatching { loadCachedOrBundled() }.getOrNull()
+                val oldUpdated = old?.let { "${it.updated} (v${it.version})" }.orEmpty()
+                val newUpdated = "${doc.updated} (v${doc.version})"
                 cacheFile.writeText(body, Charsets.UTF_8)
                 prefs.edit().putLong("last_fetch", System.currentTimeMillis()).apply()
                 val change = when {
-                    oldUpdated.isBlank() -> "Загружена база ${doc.updated}"
-                    oldUpdated != doc.updated -> "Было: $oldUpdated → стало: ${doc.updated}. ${doc.changelog.firstOrNull()?.text ?: ""}"
-                    else -> "Уже актуальная версия (${doc.updated})"
+                    oldUpdated.isBlank() -> "Загружена база $newUpdated"
+                    oldUpdated != newUpdated -> "Было: $oldUpdated → стало: $newUpdated. ${doc.changelog.firstOrNull()?.text ?: ""}"
+                    else -> "Уже актуальная версия ($newUpdated)"
                 }
                 doc to change
             } finally {
